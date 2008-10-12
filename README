@@ -1,0 +1,72 @@
+scdn 
+
+
+scdns, the Severely Crippled Domain Name Server, implements just a
+few of the services specified in RFC1035. The code is covered by the
+GNU license.  
+
+So, what then is the purpose of scdns?
+
+My need arose with an embedded Linux-box. This box is usually not
+connected to any network, but an external PC may be connected by
+Ethernet to use ftp, telnet or HTTP tools for configuration, program
+updates, backups etc. The box runs a udhpcd server, so the PC will
+automatically get an IP-address when connected. However, I also need
+a name server so the user can type in the host name instead of the
+IP-address. The user thus does not need to edit any host file on the PC.
+
+In this situation the name server can be authorative, not provide
+recursion, only serve UDP and only support the REQA function,
+i.e. given a host name return the IP-address. It takes little code to
+also implement the reverse operation PTR: given an IP address return
+the host name. So, scdns only serves REQA and PTR requests.
+
+Why not use a full featured dns? Embedded systems often have limited
+resources, and unused functionality is often removed to reduce code
+and RAM size, see http://www.busybox.net for examples.  
+
+At startup scdns reads 'scdns.conf'. Each line of this
+file specifies a host name and the corresponding IP-address in dotted
+quad notation, e.g:
+
+thebox 192.168.1.5
+
+If the host name contains a dot scdns will remove the first dot and any
+substring following that. The maximum host name length is set to 15,
+but may be changed by editing the source file.
+
+scdns may be useful in an isolated static network, just
+add a line for each host into the config file. As scdns is authorative
+you will never get access to any external nameserver. 
+
+Running scdns
+
+scdns [-d] [-p <port>] [-i <iface ip>]
+
+-d run as daemon
+-p port number	default: 53
+-i interface IP address to listen to, default: listen to all ifaces
+
+
+Configuring  udhpcd
+
+e.g.:
+
+opt dns 192.168.1.5 # dns server's ip address
+opt domain bb       # 
+
+Set domain to something other than local, otherwise you will probably trigger 
+broadcast mdns requests/rendevous/zeroconfig. I use 'bb', so in my browser I
+can type 'http://thebox.bb'.
+
+
+Credits:
+
+I started out with the sheerdns of Paul Sheer
+http://threading.2038bug.com/sheerdns/
+and rewrote it into a shape which I believe is both easier to understand
+and maintain. I also reused the input buffer for output and
+removed services I did not need.
+
+Some bugfix and minor changes was applied by Roberto A. Foglietta 
+<me@roberto.foglietta.name>
