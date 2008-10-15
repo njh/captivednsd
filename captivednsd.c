@@ -36,6 +36,7 @@
 #include <assert.h>
 #include <time.h>
 #include <signal.h>
+#include <getopt.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <ctype.h>
@@ -75,7 +76,7 @@ int getfileentry(FILE * fp, struct dns_entry *s)
 
 	while(1) {
 		if(!(r = fgets(line, 100, fp)))
-				return -1;
+			return -1;
 
 		while(*r == ' ' || *r == '\t') {
 			r++;
@@ -339,7 +340,7 @@ void undot(uint8_t * rip)
 void usage()
 {
 	printf("Usage:\n");
-	printf("\tscdns [-ttl <seconds>] [-p <port>] [-i <iface-ip>]\n");
+	printf("\tscdns [-t <ttl>] [-p <port>] [-i <iface-ip>]\n");
 	exit(-1);
 }
 
@@ -349,23 +350,19 @@ int main(int argc, char **argv)
 	uint16_t port = 53;
 	uint8_t buf[MAX_PACK_LEN];
 	char *listen_interface = "0.0.0.0";
+	int opt;
 
-	if (argc > 1) {
-		int k;
-		for (k = 1; k < argc; k++) {
-			if (argv[k][0] == '-' && k > argc - 2)
-				usage();
-			if (!strncmp(argv[k], "-ttl", 4))		//time to live
-				ttl = (uint32_t) atol(argv[++k]);
-			else if (!strncmp(argv[k], "-p", 2))
-				port = (uint16_t) atol(argv[++k]);
-			else if (!strncmp(argv[k], "-i", 2))
-				listen_interface = argv[++k];
-			else if (argv[k][0] == '-')
-				usage();
+	// Parse Switches
+	while ((opt = getopt(argc, argv, "t:p:i:")) != -1) {
+		switch (opt) {
+			case 't':  ttl = (uint32_t) atoi(optarg); break;
+			case 'p':  port = (uint16_t) atoi(optarg); break;
+			case 'i':  listen_interface = optarg; break;
+			default:  usage(); break;
+		}
+	}
 
-		}				// end for
-	}						// end if
+
 	dnsentryinit();
 
 	signal(SIGINT, interrupt);
