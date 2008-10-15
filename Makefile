@@ -7,7 +7,7 @@ OBJECTS=$(SRCS:.c=.o)
 
 all: captivednsd
 
-captivednsd: $(OBJECTS) Makefile
+captivednsd: $(OBJECTS) captivednsd.h Makefile
 	gcc -o captivednsd $(OBJECTS)
 
 .c.o: $(SRCS) Makefile

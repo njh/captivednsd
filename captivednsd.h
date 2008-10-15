@@ -20,24 +20,24 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef isblank
-# define isblank isspace
-#endif
 
 // Function prototypes
-int process_packet(uint8_t * buf);
-int table_lookup(uint16_t type, uint8_t * as, uint8_t * qs);
-void convname(char *a, uint8_t * q);
-void dnsentryinit(void);
-void undot(uint8_t * rip);
-void interrupt(int x);
+void convname(char *cstr, char *dnsstr);
+int process_packet(uint8_t *buf);
+int listen_socket(char *bind_addr, int listen_port);
+void interrupt(int sig);
+void setup_signals();
+void usage();
 
-#define HOST_FILE_PATH "/etc/hosts"
-#define MAX_HOST_LEN   (16)     // longest host name allowed is 15
-#define IP_STRING_LEN  (18)     // .xxx.xxx.xxx.xxx\0
+#define HOST_FILE_PATH	"/etc/hosts"
+#define MAX_HOST_LEN	(16)     // longest host name allowed is 15
+#define	IP_STRING_LEN	(18)     // .xxx.xxx.xxx.xxx\0
+#define REQ_A			(1)
+#define REQ_PTR			(12)
 
 //must be strlen('.in-addr.arpa') larger than IP_STRING_LEN
 #define  MAX_NAME_LEN  (IP_STRING_LEN + 13)
+
 
 /* Cannot get bigger packets than 512 per RFC1035
    In practice this can be set considerably smaller:
@@ -47,34 +47,21 @@ void interrupt(int x);
 */
 #define  MAX_PACK_LEN (512 + 1)
 
-#define  DEFAULT_TTL (30)        // increase this when not testing?
-#define  REQ_A       (1)
-#define  REQ_PTR     (12)
+#define DEFAULT_TTL			(30)		// increase this when not testing?
+#define DEFAULT_PORT		(53)		// Default port to listen on
+#define DEFAULT_BIND_ADDR	"0.0.0.0"	// Default port to listen on
 
 
-struct dns_repl {               // resource record, add 0 or 1 to accepted dns_msg in resp
-        uint16_t rlen;
-        uint8_t *r;             // resource
-        uint16_t flags;
-};
-
-struct dns_head {               // the message from client and first part of response mag
-        uint16_t id;
-        uint16_t flags;
-        uint16_t nquer;         // accepts 0
-        uint16_t nansw;         // 1 in response
-        uint16_t nauth;         // 0 
-        uint16_t nadd;          // 0
+struct dns_head {		// the message from client and first part of response mag
+	uint16_t id;
+	uint16_t flags;
+	uint16_t nquer;		// accepts 0
+	uint16_t nansw;		// 1 in response
+	uint16_t nauth;		// 0
+	uint16_t nadd;		// 0
 };
 
 struct dns_prop {
-        uint16_t type;
-        uint16_t class;
-};
-
-struct dns_entry {              // element of known name, ip address and reversed ip address
-        struct dns_entry *next;
-        char ip[IP_STRING_LEN]; 	// dotted decimal IP
-        char rip[IP_STRING_LEN];        // length decimal reversed IP 
-	char name[MAX_HOST_LEN];
+	uint16_t type;
+	uint16_t class;
 };
