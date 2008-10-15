@@ -39,7 +39,7 @@ int verbose = 0;
 
 
 /*
- * Convert host name from C-string to dns length/string.
+ * Convert host name from C-string to DNS length/string.
  */
 void convname(char *cstr, char *dnsstr)
 {
@@ -52,6 +52,24 @@ void convname(char *cstr, char *dnsstr)
 
 
 /*
+ * Display a DNS length/string
+ */
+void display_query_string(uint8_t *qstr)
+{
+	while(1) {
+		uint8_t i=0, len = qstr[0];
+		if (len == 0) break;
+		for(i=1; i<=len; i++) {
+			printf("%c", qstr[i]);
+		}
+		printf(".");
+		qstr=&qstr[i];
+	}
+	printf("\n");
+}
+
+
+/*
  * Decode message and generate answer
  */
 int process_packet(uint8_t *buf)
@@ -59,7 +77,7 @@ int process_packet(uint8_t *buf)
 	uint8_t answstr[MAX_NAME_LEN + 1];
 	struct dns_head *head;
 	struct dns_prop *qprop;
-	uint8_t *from, *answb;
+	uint8_t *querystr, *answb;
 	uint16_t outr_rlen;
 	uint16_t outr_flags;
 	uint16_t flags;
@@ -79,18 +97,16 @@ int process_packet(uint8_t *buf)
 		return -1;
 	}
 
-	from = (void *)&head[1];	//  start of query string
+	querystr = (void *)&head[1];		//  end of header / start of query string
 	// FIXME: strlen of untrusted data??!
-	querystr_len = strlen((char *)from) + 1 + sizeof(struct dns_prop);
-	answb = from + querystr_len;   // where to append answer block
+	querystr_len = strlen((char *)querystr) + 1 + sizeof(struct dns_prop);
+	answb = querystr + querystr_len;   // where to append answer block
 
 	outr_rlen = 0;
 	outr_flags = 0;
 
-	qprop = (struct dns_prop *)(answb - 4);
-	type = ntohs(qprop->type);
-
 	// class INET ?
+	qprop = (struct dns_prop *)(answb - 4);
 	if (ntohs(qprop->class) != 1 ) { 
 		fprintf(stderr, "warning: non-INET class requests unsupported\n");
 		outr_flags = 4; // not supported
@@ -102,29 +118,33 @@ int process_packet(uint8_t *buf)
 		fprintf(stderr, "warning: non-standard query received\n");
 		goto empty_packet;
 	}
-	
-	printf("%s", (char *)from);
 
 	// Check the query type
+	type = ntohs(qprop->type);
 	if (type == REQ_A) {
 		// Return a IP address
 		memcpy(answstr, &captive_ip.s_addr, 4);
 		outr_rlen = 4;	// uint32_t IPv4 address
+		printf("Recieved A record query for: ");
 	} else if (type == REQ_PTR) {
 		// Return a hostname
 		outr_rlen = strlen(captive_host) + 1;
 		memcpy(answstr, captive_host, outr_rlen);
+		printf("Recieved PTR record query for: ");
 	} else {
-		fprintf(stderr, "warning: we only support A and PTR queries\n");
+		fprintf(stderr, "warning: we only support A and PTR queries not type: 0x%x\n", type);
 		goto empty_packet;	// we can't handle the query type
 	}
+
+	// Display the DNS query string	
+	display_query_string(querystr);
 	
 	// Set the authority-bit
 	outr_flags |= 0x0400;
 	// we have an answer
 	head->nansw = htons(1);
 	// copy query block to answer block
-	memcpy(answb, from, querystr_len);
+	memcpy(answb, querystr, querystr_len);
 	answb += querystr_len;
 
 	// and append answer rr
@@ -186,7 +206,7 @@ int listen_socket(char *bind_addr, int listen_port)
 	listen(s, 50);
 	
 	if (verbose)
-		printf("Accepting UDP packets on addr:port %s:%d\n", bind_addr, (int)listen_port);
+		printf("Accepting UDP packets on %s:%d\n", bind_addr, (int)listen_port);
 
 	return s;
 }
@@ -222,7 +242,7 @@ void usage()
 	printf("usage: captivednsd [options] <ip> <host>\n");
 	printf("          -t <ttl>   Set the TTL for DNS responses (default %d).\n", DEFAULT_TTL);
 	printf("          -p <port>  Port number to listen on (default %d).\n", DEFAULT_PORT);
-	printf("          -b <addr>  Bind to an IP address (default %s).\n", DEFAULT_BIND_ADDR);
+	printf("          -b <addr>  Address to bind socket to (default %s).\n", DEFAULT_BIND_ADDR);
 	exit(-1);
 }
 
@@ -248,13 +268,13 @@ int main(int argc, char **argv)
 	}
 	
 	// Check remaining arguments
-    argc -= optind;
-    argv += optind;
-    if (argc!=2) usage();
+	argc -= optind;
+	argv += optind;
+	if (argc!=2) usage();
     
     // Parse the captive IP address
 	if (!inet_aton(argv[0], &captive_ip)) {
-		fprintf(stderr, "Error: invalid IPv4 address: %s\n", argv[0]);
+		fprintf(stderr, "error: invalid IPv4 address: %s\n", argv[0]);
 		exit(-1);
 	}
 	
@@ -288,10 +308,14 @@ int main(int argc, char **argv)
 			struct sockaddr_in from;
 			int fromlen = sizeof(from);
 			r = recvfrom(sock, buf, sizeof(buf), 0, (struct sockaddr *)&from, (void *)&fromlen);
-			fprintf(stderr, "\n--- Got UDP (%d)	", r);
-
+			
+			if (verbose) {
+				printf("--- Got %d byte UDP packet from %s:%d\n",
+						r, inet_ntoa(from.sin_addr), from.sin_port);
+			}
+			
 			if (r < 12 || r > 512) {
-				fprintf(stderr, "invalid packet size");
+				fprintf(stderr, "invalid DNS packet size");
 				continue;
 			}
 			if (r > 0) {

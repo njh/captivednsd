@@ -1,24 +1,18 @@
 /*
-    captivednsd
-    Copyright (C) 2008 Nicholas J Humfrey
-    Copyright (C) 2005 Odd Arild Olsen (oao at fibula dot no)
-    Copyright (C) 2003 Paul Sheer
-    Copyright (C) 2001 Levent Karakas
-    
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-    
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-    
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-*/
+ * captivednsd
+ * 
+ * Mini DNS server, which returns the same answer to all requests.
+ *
+ * Copyright (C) 2008 Nicholas J Humfrey
+ * Copyright (C) 2005 Roberto A. Foglietta (me@roberto.foglietta.name)
+ * Copyright (C) 2005 Odd Arild Olsen (oao at fibula dot no)
+ * Copyright (C) 2003 Paul Sheer
+ *
+ * Licensed under GPLv2 or later, see file LICENSE in this tarball for details.
+ *
+ * Based on Busybox's dnsd, which in-turn is based on scdns.
+ *
+ */
 
 
 // Function prototypes
