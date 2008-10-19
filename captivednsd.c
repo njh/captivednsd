@@ -43,11 +43,24 @@ int verbose = 0;
  */
 void convname(char *cstr, char *dnsstr)
 {
-	int i = (cstr[0] == '.') ? 0 : 1;
-	for (; i < MAX_HOST_LEN-1 && *cstr; i++, cstr++)
-		dnsstr[i] = tolower(*cstr);
-	dnsstr[0] = i - 1;
-	dnsstr[i] = 0;
+	char* dnslen = dnsstr;
+	int i;
+	
+	// Ignore the first character if it is a dot
+	if (*cstr == '.') cstr++;
+	
+	// Set the intial string length to 0
+	*dnslen = 0;
+	
+	for (i=0; i < MAX_HOST_LEN-2 && cstr[i]; i++) {
+		if (cstr[i] == 0x00 || cstr[i] == '.') {
+			dnslen = &dnsstr[i+1];
+			*dnslen = 0;
+		} else {
+			dnsstr[i+1] = tolower(cstr[i]);
+			(*dnslen)++;
+		}
+	}
 }
 
 
@@ -275,10 +288,19 @@ int main(int argc, char **argv)
     // Parse the captive IP address
 	if (!inet_aton(argv[0], &captive_ip)) {
 		fprintf(stderr, "error: invalid IPv4 address: %s\n", argv[0]);
-		exit(-1);
+		usage();
 	}
 	
 	// Convert host name from C-string to dns length/string
+	if (strlen(argv[1])<1) {
+		fprintf(stderr, "error: host is too short\n");
+		usage();
+	}
+	if (strlen(argv[1])>(MAX_HOST_LEN-2)) {
+		fprintf(stderr, "error: host is too long: %s\n", argv[1]);
+		usage();
+	}
+	bzero(captive_host, MAX_HOST_LEN);
 	convname( argv[1], captive_host);
 
 	// Setup signal handlers
