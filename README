@@ -31,7 +31,7 @@ Example
 captivednsd 10.0.0.1 portal.local.
 
 All A requests will return IP address 10.0.0.1.
-Add PTR requestsion will return portal.local.
+All PTR requests will return portal.local.
 
 
 Todo
