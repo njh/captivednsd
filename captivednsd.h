@@ -23,14 +23,10 @@ void interrupt(int sig);
 void setup_signals();
 void usage();
 
-#define HOST_FILE_PATH	"/etc/hosts"
-#define MAX_HOST_LEN	(16)     // longest host name allowed is 15
+#define MAX_HOST_LEN	(127)    // longest host name allowed
 #define	IP_STRING_LEN	(18)     // .xxx.xxx.xxx.xxx\0
 #define REQ_A			(1)
 #define REQ_PTR			(12)
-
-//must be strlen('.in-addr.arpa') larger than IP_STRING_LEN
-#define  MAX_NAME_LEN  (IP_STRING_LEN + 13)
 
 
 /* Cannot get bigger packets than 512 per RFC1035

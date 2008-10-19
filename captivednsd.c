@@ -87,7 +87,7 @@ void display_query_string(uint8_t *qstr)
  */
 int process_packet(uint8_t *buf)
 {
-	uint8_t answstr[MAX_NAME_LEN + 1];
+	uint8_t answstr[MAX_HOST_LEN + 1];
 	struct dns_head *head;
 	struct dns_prop *qprop;
 	uint8_t *querystr, *answb;
@@ -301,7 +301,7 @@ int main(int argc, char **argv)
 		usage();
 	}
 	bzero(captive_host, MAX_HOST_LEN);
-	convname( argv[1], captive_host);
+	convname(argv[1], captive_host);
 
 	// Setup signal handlers
 	setup_signals();
@@ -333,7 +333,7 @@ int main(int argc, char **argv)
 			
 			if (verbose) {
 				printf("--- Got %d byte UDP packet from %s:%d\n",
-						r, inet_ntoa(from.sin_addr), from.sin_port);
+						r, inet_ntoa(from.sin_addr), ntohs(from.sin_port));
 			}
 			
 			if (r < 12 || r > 512) {
