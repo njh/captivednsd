@@ -1,5 +1,5 @@
 captivednsd
------------
+===========
 
 captivednsd, the Captive Domain Name Server, returns same authorative response 
 to every query. The reponse to 'A' queries and 'PTR' records are passed as 
@@ -12,31 +12,23 @@ firewall.
 
 captivednsd is based on the source code of scdns and Busybox's dnsd:
 
-http://www.oao.no/filer/scdns-25.tgz
-http://www.busybox.net/cgi-bin/viewcvs.cgi/trunk/busybox/networking/dnsd.c
+* http://www.oao.no/filer/scdns-25.tgz
+* http://www.busybox.net/cgi-bin/viewcvs.cgi/trunk/busybox/networking/dnsd.c
 
 
 Usage
 -----
 
-captivednsd [options] <ip> <host>
-      -t <ttl>   Set the TTL for DNS responses (default 30).
-      -p <port>  Port number to listen on (default 53).
-      -b <addr>  Bind to an IP address (default 0.0.0.0).
+    captivednsd [options] <ip> <host>
+          -t <ttl>   Set the TTL for DNS responses (default 30).
+          -p <port>  Port number to listen on (default 53).
+          -b <addr>  Bind to an IP address (default 0.0.0.0).
 
 
 Example
 -------
 
-captivednsd 10.0.0.1 portal.local.
+    captivednsd 10.0.0.1 portal.local.
 
-All A requests will return IP address 10.0.0.1.
-All PTR requests will return portal.local.
-
-
-Todo
-----
-
-- Hard coded support for resolving the IP of localhost
-- Support reading static hosts from /etc/hosts
-- IPv6 Support
+* All A requests will return IP address 10.0.0.1.
+* All PTR requests will return portal.local.
