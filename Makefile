@@ -18,7 +18,7 @@ clean:
 	
 dist:
 	distdir='$(PACKAGE)-$(VERSION)'; mkdir $$distdir || exit 1; \
-	list=`svn ls`; for file in $$list; do \
+	list=`git ls-files`; for file in $$list; do \
 		cp -pR $$file $$distdir || exit 1; \
 	done; \
 	tar -zcf $$distdir.tar.gz $$distdir; \
